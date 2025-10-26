@@ -1,0 +1,1 @@
+g++ relay_server.cpp session_manager.cpp socket_utils.cpp -o relay_server.exe -I../include -static-libgcc -static-libstdc++ -std=c++17 -Wall -Wextra -O2 -lws2_32
