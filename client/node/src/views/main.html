@@ -35,8 +35,8 @@
         </main>
     </div>
 
-    <!-- CONTEINER RECEBIMENTO DE CHAMADA -->
-    <div id="incoming-call-dialog" class="dialog-overlay" style="display: none;">
+    <!-- RECEBIMENTO DE CHAMADA -->
+    <div id="incoming-call-dialog" class="dialog-overlay">
         <div class="dialog-box">
             <h3 id="caller-id-label"></h3>
             <div class="dialog-buttons">
@@ -46,8 +46,8 @@
         </div>
     </div>
 
-    <!-- CONTEINER ADD CONTATO -->
-    <div id="add-contact-dialog" class="dialog-overlay" style="display: none;">
+    <!-- BUSCAR CONTATO -->
+    <div id="add-contact-dialog" class="dialog-overlay">
         <div class="dialog-box">
             <h3>Adicionar Novo Contato</h3>
             
@@ -56,13 +56,14 @@
                 <button id="search-contact-btn">Procurar</button>
             </div>
 
-            <div id="search-result-area" style="display: none; margin-top: 20px;">
-                <p>Utilizador encontrado:</p>
-                <div class="contact-list" style="margin: 0;"> <li>
+            <div id="search-result-area">
+                <p>Usuário encontrado:</p>
+                <div class="contact-list" id="search-contact-list"> 
+                    <li>
                         <div class="contact-info">
-                            <span id="found-contact-nickname" style="font-weight: bold;"></span>
+                            <span id="found-contact-nickname"></span>
                         </div>
-                        <button id="send-request-btn" class="call-btn">Enviar Pedido</button>
+                        <button id="send-request-btn">Enviar Pedido</button>
                     </li>
                 </div>
             </div>
@@ -70,20 +71,21 @@
         </div>
     </div>
 
-    <div id="call-window-dialog" class="dialog-overlay" style="display: none;">
+    <!-- EM CHAMADA -->
+    <div id="call-window-dialog" class="dialog-overlay">
         <div class="dialog-box">
             
             <div id="outgoing-call-state">
                 <h3 id="outgoing-call-label">A ligar para...</h3>
                 <div class="dialog-buttons">
-                    <button id="cancel-call-btn" style="background-color: var(--danger);">Cancelar</button>
+                    <button id="cancel-call-btn" class="btn-danger">Cancelar</button>
                 </div>
             </div>
 
-            <div id="active-call-state" style="display: none;">
+            <div id="active-call-state">
                 <h3 id="active-call-label">Em chamada com...</h3>
                 <div class="dialog-buttons">
-                    <button id="end-call-btn" style="background-color: var(--danger);">Desligar</button>
+                    <button id="end-call-btn" class="btn-danger">Desligar</button>
                 </div>
             </div>
 
@@ -93,192 +95,7 @@
     <audio id="ringtone-sound" src="../assets/audios/ringtone.wav" loop></audio>
     <audio id="dialing-sound" src="../assets/audios/phone-call-tone.wav" loop></audio>
     <audio id="hangup-sound" src="../assets/audios/disconnect.wav"></audio>
-    
-    <script>
-        // =================================================================
-        // 1. SELEÇÃO DE ELEMENTOS
-        // =================================================================
-        const contactList = document.getElementById('contact-list');
-        const loggedInUserNickname = document.getElementById('user-nickname');
-        const addContactBtn = document.getElementById('add-contact-btn');
 
-        // Áudio
-        const ringtoneSound = document.getElementById('ringtone-sound');
-        const dialingSound = document.getElementById('dialing-sound');
-        const hangupSound = document.getElementById('hangup-sound');
-
-        // Diálogo: Chamada Recebida
-        const incomingCallDialog = document.getElementById('incoming-call-dialog');
-        const callerIdLabel = document.getElementById('caller-id-label');
-        const acceptCallBtn = document.getElementById('accept-call-btn');
-        const refuseCallBtn = document.getElementById('refuse-call-btn');
-        
-        // Diálogo: Adicionar Contato
-        const addContactDialog = document.getElementById('add-contact-dialog');
-        const searchNicknameInput = document.getElementById('search-nickname-input');
-        const searchContactBtn = document.getElementById('search-contact-btn');
-        const searchResultArea = document.getElementById('search-result-area');
-        const foundContactNickname = document.getElementById('found-contact-nickname');
-        const sendRequestBtn = document.getElementById('send-request-btn');
-        const searchErrorMsg = document.getElementById('search-error-msg');
-
-        // Diálogo: Janela de Chamada (Feita pelo utilizador)
-        const callWindowDialog = document.getElementById('call-window-dialog');
-        const outgoingCallState = document.getElementById('outgoing-call-state');
-        const outgoingCallLabel = document.getElementById('outgoing-call-label');
-        const cancelCallBtn = document.getElementById('cancel-call-btn');
-        const activeCallState = document.getElementById('active-call-state');
-        const activeCallLabel = document.getElementById('active-call-label');
-        const endCallBtn = document.getElementById('end-call-btn');
-
-        // =================================================================
-        // 2. DADOS FALSOS
-        // =================================================================
-        const mockContacts = [
-            { nickname: 'Kauan', status: 'Online' },
-            { nickname: 'Ana Clara', status: 'Em Chamada' },
-            { nickname: 'Prof. Ricardo', status: 'Online' },
-            { nickname: 'Carlos', status: 'Offline' },
-            { nickname: 'Mariana', status: 'Offline' },
-        ];
-        loggedInUserNickname.innerText = 'user';
-
-        // =================================================================
-        // 3. FUNÇÕES
-        // =================================================================
-
-        function renderContacts() {
-            contactList.innerHTML = '';
-            for (const contact of mockContacts) {
-                const statusClass = contact.status.toLowerCase().replace(' ', '-');
-                const contactItem = document.createElement('li');
-                contactItem.innerHTML = `
-                    <div class="contact-info">
-                        <span class="status-indicator ${statusClass}"></span>
-                        <span class="contact-nickname">${contact.nickname}</span>
-                    </div>
-                    <button class="call-btn" data-nickname="${contact.nickname}" ${contact.status !== 'Online' ? 'disabled' : ''}>Ligar</button>
-                `;
-                contactList.appendChild(contactItem);
-            }
-            addCallButtonListeners();
-        }
-
-        function showDialog(dialogElement) { dialogElement.style.display = 'flex'; }
-        function hideDialog(dialogElement) { dialogElement.style.display = 'none'; }
-
-        function simulateSearchContact() {
-            const nicknameToSearch = searchNicknameInput.value;
-            searchErrorMsg.innerText = '';
-            searchResultArea.style.display = 'none';
-
-            setTimeout(() => {
-                if (nicknameToSearch === 'newUser') {
-                    foundContactNickname.innerText = nicknameToSearch;
-                    searchResultArea.style.display = 'block';
-                } else if (nicknameToSearch) {
-                    searchErrorMsg.innerText = `Utilizador "${nicknameToSearch}" não encontrado.`;
-                } else {
-                    searchErrorMsg.innerText = 'Por favor, digite um nickname.';
-                }
-            }, 500);
-        }
-
-        function simulateInitiateCall(calleeNickname) {
-            outgoingCallLabel.innerText = `A ligar para ${calleeNickname}...`;
-            outgoingCallState.style.display = 'block';
-            activeCallState.style.display = 'none';
-            showDialog(callWindowDialog);
-            
-            dialingSound.play();
-
-            setTimeout(() => {
-                // Para o som de discagem quando a chamada é "atendida"
-                stopAllCallSounds();
-                
-                activeCallLabel.innerText = `Em chamada com ${calleeNickname}`;
-                outgoingCallState.style.display = 'none';
-                activeCallState.style.display = 'block';
-            }, 3000);
-        }
-
-        function stopAllCallSounds() {
-            ringtoneSound.pause();
-            ringtoneSound.currentTime = 0;
-            dialingSound.pause();
-            dialingSound.currentTime = 0;
-        }
-        
-        function resetAddContactDialog() {
-            searchNicknameInput.value = '';
-            searchResultArea.style.display = 'none';
-            searchErrorMsg.innerText = '';
-        }
-
-        // =================================================================
-        // 4. ESCUTADORES DE EVENTOS
-        // =================================================================
-
-        addContactBtn.addEventListener('click', () => showDialog(addContactDialog));
-        
-        acceptCallBtn.addEventListener('click', () => {
-            stopAllCallSounds();
-            hideDialog(incomingCallDialog);
-            // Simula o blip de conexão
-            hangupSound.play(); 
-        });
-
-        refuseCallBtn.addEventListener('click', () => {
-            stopAllCallSounds();
-            hideDialog(incomingCallDialog);
-        });
-
-        searchContactBtn.addEventListener('click', simulateSearchContact);
-
-        addContactDialog.addEventListener('click', (e) => {
-            if (e.target === addContactDialog) {
-                hideDialog(addContactDialog);
-                resetAddContactDialog();
-            }
-        });
-
-        cancelCallBtn.addEventListener('click', () => {
-            stopAllCallSounds();
-            hideDialog(callWindowDialog);
-            hangupSound.play();
-        });
-
-        endCallBtn.addEventListener('click', () => {
-            stopAllCallSounds();
-            hideDialog(callWindowDialog);
-            hangupSound.play();
-        });
-
-        function addCallButtonListeners() {
-            const callButtons = document.querySelectorAll('.call-btn:not(:disabled)');
-            callButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const nickname = button.dataset.nickname;
-                    simulateInitiateCall(nickname);
-                });
-            });
-        }
-
-        // =================================================================
-        // 5. INICIALIZAÇÃO
-        // =================================================================
-        renderContacts();
-        
-        setTimeout(() => {
-            const caller = mockContacts.find(c => c.status === 'Online');
-            if (caller) {
-                console.log(`Simulando chamada recebida de ${caller.nickname}`);
-                callerIdLabel.innerText = `${caller.nickname} está a ligar...`;
-                showDialog(incomingCallDialog);
-                ringtoneSound.play();
-            }
-        }, 5000);
-
-    </script>
 </body>   
+<script src="js/main_html.js"></script>
 </html>

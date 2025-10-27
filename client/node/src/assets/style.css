@@ -231,7 +231,7 @@ header {
 .dialog-overlay {
     position: fixed; 
     inset: 0; 
-    display: flex; 
+    display: none; /* --- MODIFICADO --- (Estava 'flex', 'display: none' é o correto por padrão) */
     justify-content: center; 
     align-items: center;
     background: rgba(10,12,20,0.6); 
@@ -253,8 +253,38 @@ header {
     background-color: var(--success);
 }
 
-#refuse-call-btn{
+/* --- MODIFICADO --- (Agrupei todos os botões de perigo) */
+#refuse-call-btn,
+#cancel-call-btn,
+#end-call-btn {
     background-color: var(--danger);
+}
+
+/* --- ADICIONADO --- (Estilos que estavam inline no HTML) */
+#search-result-area {
+    display: none;
+    margin-top: 20px;
+}
+
+/* --- ADICIONADO --- (Remove a margem da lista de contatos SÓ na busca) */
+#search-result-area .contact-list {
+    margin: 0;
+}
+
+/* --- ADICIONADO --- (Deixa o nickname da busca em negrito) */
+#found-contact-nickname {
+    font-weight: bold;
+}
+
+/* --- ADICIONADO --- (Esconde o estado de chamada ativa por padrão) */
+#active-call-state {
+    display: none;
+}
+
+#send-request-btn {
+    width: auto; /* Remove o 'width: 100%' do seletor 'button' */
+    padding-left: 16px;  /* Adiciona um preenchimento para não ficar colado */
+    padding-right: 16px; /* Adiciona um preenchimento para não ficar colado */
 }
 
 /* Responsividade simples */

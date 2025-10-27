@@ -8,10 +8,8 @@
 </head>
 
 <body>
-    <!--Container principal-->
     <div class="container">
 
-        <!--Forms de login-->
         <div id="login-form">
             <h1>Login</h1>
             <input type="text" id="login-nickname" placeholder="Nickname">
@@ -21,9 +19,9 @@
             <a href="#" id="show-register-link">Ainda não tem conta? Registe-se</a>
         </div>
 
-        <!--Forms de Registro-->
         <div id="register-form" style="display: none;">
             <h1>Criar Conta</h1>
+            <input type="text" id="register-name" placeholder="Nome Completo">
             <input type="text" id="register-nickname" placeholder="Nickname desejado">
             <input type="password" id="register-password" placeholder="Senha">
             <input type="password" id="register-confirm-password" placeholder="Confirme a Senha">
@@ -32,69 +30,8 @@
             <a href="#" id="show-login-link">Já tem uma conta? Faça o login</a>
         </div>
     </div>
-
-    <script>
-
-        const loginForm = document.getElementById('login-form');
-        const registerForm = document.getElementById('register-form');
-        const showRegisterLink = document.getElementById('show-register-link');
-        const showLoginLink = document.getElementById('show-login-link');
-        
-        // Lógica para alternar entre os formulários
-        showRegisterLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            loginForm.style.display = 'none';
-            registerForm.style.display = 'block';
-        });
-        showLoginLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            registerForm.style.display = 'none';
-            loginForm.style.display = 'block';
-        });
-
-        // --- SIMULAÇÃO DE LOGIN ---
-        const loginBtn = document.getElementById('login-btn');
-        const loginErrorMsg = document.getElementById('login-error-msg');
-
-        loginBtn.addEventListener('click', () => {
-            const nickname = document.getElementById('login-nickname').value;
-            const password = document.getElementById('login-password').value;
-
-            loginErrorMsg.innerText = ""; // Limpa a mensagem de erro
-
-            setTimeout(() => {
-                if (nickname === 'user' && password === '1234') {
-                    // Envia a mensagem para o main.js para trocar de janela
-                    window.electron.send('login-success');
-                } else {
-                    loginErrorMsg.innerText = "Nickname ou senha inválidos.";
-                }
-            }, 500); 
-        });
-
-        // --- SIMULAÇÃO DE REGISTO ---
-        const registerBtn = document.getElementById('register-btn');
-        const registerMsg = document.getElementById('register-msg');
-
-        registerBtn.addEventListener('click', () => {
-            const nickname = document.getElementById('register-nickname').value;
-            registerMsg.innerText = "";
-
-            setTimeout(() => {
-                // Simula que o nickname 'admin' já existe
-                if (nickname === 'admin') {
-                    registerMsg.style.color = '#d93025'; // Vermelho
-                    registerMsg.innerText = "Este nickname já está em uso.";
-                } else if (nickname) {
-                    registerMsg.style.color = '#28a745'; // Verde
-                    registerMsg.innerText = "Conta criada com sucesso! Faça o login.";
-                } else {
-                    registerMsg.style.color = '#d93025';
-                    registerMsg.innerText = "Por favor, insira um nickname.";
-                }
-            }, 500);
-        });
-
-    </script>
 </body>
+
+<script src="js/auth.js"></script>
+
 </html>
