@@ -12,5 +12,8 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^38.3.0"
+  },
+  "dependencies": {
+    "python-struct": "^1.1.3"
   }
 }

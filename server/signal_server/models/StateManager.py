@@ -1,30 +1,8 @@
 import asyncio
-from enum import Enum
 
-class UserStatus(Enum):
-    ONLINE = 'Online'
-    IN_CALL = 'Em Chamada'
+from .ConnectedUser import ConnectedUser
 
-# Representa um usuário conectado e seu estado.
-class ConnectedUser:
-    def __init__(self, nickname: str, writer: asyncio.StreamWriter):
-        self.nickname: str = nickname
-        self.writer: asyncio.StreamWriter = writer
-        self.status: UserStatus = UserStatus.ONLINE
-        self.in_call_with: str | None = None 
-
-    def start_call(self, partner_nickname: str):
-        self.status = UserStatus.IN_CALL
-        self.in_call_with = partner_nickname
-
-    def end_call(self):
-        self.status = UserStatus.ONLINE
-        self.in_call_with = None
-
-    def get_status_str(self) -> str:
-        return self.status.value
-
-#  Classe de gerenciamento que controla o dicionário de todos os usuários conectados
+# Classe de gerenciamento que controla o dicionário de todos os usuários conectados
 class _StateManager:
     def __init__(self):
         self._connected_users: dict[str, ConnectedUser] = {}

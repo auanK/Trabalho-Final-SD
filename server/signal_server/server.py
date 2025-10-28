@@ -6,14 +6,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 async def main():
     
-    # 0.0.0.0 é um endereço IP especial. Ele não é um endereço real, 
-    #mas sim uma instrução que significa: "Escute em TODAS as interfaces de rede que este computador possui."
+    # 0.0.0.0 é um endereço IP especial. é uma instrução que significa: "Escute em TODAS as interfaces de rede que este computador possui."
     server_host = '0.0.0.0'
-    # Porta pela qual o serve de sinalização escuta
     server_port = 8888      
     
     # Servidor é criado e preparado aqui(n iniciado)
-    # Aqui esta sendo criados varios sockets para todos os endereços
     # 'Server' não é o socket; é um gerenciador de sockets. Ele armazena a função 
     # handle_client como o callback a ser usado quando uma nova conexão for aceita.
     server = await asyncio.start_server(
