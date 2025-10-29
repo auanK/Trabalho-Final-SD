@@ -1,12 +1,11 @@
-import asyncio
+import socket 
 from .UserStatus import UserStatus
 
-# Representa um usuário conectado e seu estado (online, offline, em chamdada).
-# Contém informações temporárias e dinâmicas, relevantes apenas durante a sessão ativa
+# Representa um usuário conectado e seu estado 
 class ConnectedUser:
-    def __init__(self, nickname: str, writer: asyncio.StreamWriter):
+    def __init__(self, nickname: str, conn: socket.socket):
         self.nickname: str = nickname
-        self.writer: asyncio.StreamWriter = writer
+        self.conn: socket.socket = conn 
         self.status: UserStatus = UserStatus.ONLINE
         self.in_call_with: str | None = None 
 

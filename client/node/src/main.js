@@ -1,9 +1,6 @@
-// main.js (Refatorado para Protocolo Binário e Corrigido)
-
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const net = require('net');
-// const struct = require('python-struct'); // REMOVIDO: Usando métodos nativos do Buffer
 
 let authWindow;
 let mainWindow;
@@ -13,10 +10,9 @@ const SERVER_HOST = '127.0.0.1';
 const SERVER_PORT = 8888;
 let userRequestedQuit = false;
 
-const client = new net.Socket(); // Variável correta é 'client'
+const client = new net.Socket();
 let tcpBuffer = Buffer.alloc(0); // Buffer para acumular dados binários
 
-// --- Definição do Protocolo Binário (Espelhando protocol.py) ---
 const CommandCode = {
     // Cliente -> Servidor
     REGISTER: 0x01, LOGIN: 0x02, GET_INITIAL_DATA: 0x03, SEARCH_USER: 0x04,
@@ -32,7 +28,7 @@ const CommandCode = {
 const CODE_TO_COMMAND_NAME = Object.fromEntries(Object.entries(CommandCode).map(([k, v]) => [v, k]));
 
 // ========================================================================
-// --- Funções de Serialização/Desserialização Binária ---
+// Funções de Serialização/Desserialização
 // ========================================================================
 
 function serializeString(str) {
@@ -86,7 +82,6 @@ function serializePayload(commandCode, payload) {
                 buffers.push(serializeString(payload.name));
             }
         } else if (commandCode === CommandCode.GET_INITIAL_DATA || commandCode === CommandCode.BYE) {
-            // Sem payload
         } else if (commandCode === CommandCode.SEARCH_USER) {
             buffers.push(serializeString(payload.nickname_query));
         } else if (commandCode === CommandCode.ADD_FRIEND) {
@@ -198,7 +193,7 @@ function deserializePayload(commandCode, payloadBuffer) {
                  commandCode === CommandCode.REJECT_FRIEND || commandCode === CommandCode.INVITE ||
                  commandCode === CommandCode.ACCEPT || commandCode === CommandCode.REJECT ||
                  commandCode === CommandCode.BYE)
-        { /* No payload expected or handled on client receive */ }
+        { }
         else { throw new Error(`Desserialização não implementada para ${CODE_TO_COMMAND_NAME[commandCode]}`); }
 
         if (offset !== payloadBuffer.length) {
@@ -221,6 +216,7 @@ function createBinaryMessage(commandCode, payload) {
     headerBuffer.writeUInt16BE(payloadBuffer.length, 1);
     return Buffer.concat([headerBuffer, payloadBuffer]);
 }
+
 // ========================================================================
 
 // --- Funções de Janela ---
@@ -246,7 +242,7 @@ function createMainWindow() {
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
-// --- Lógica Principal da Aplicação ---
+// Lógica Principal da Aplicação
 app.whenReady().then(() => {
     console.log('Tentando conectar ao servidor Python...');
     client.connect(SERVER_PORT, SERVER_HOST, () => {
@@ -255,7 +251,7 @@ app.whenReady().then(() => {
         createAuthWindow();
     });
 
-    // --- OUVINTE DE DADOS BINÁRIOS ---
+    // UVINTE DE DADOS BINÁRIOS
     client.on('data', (data) => {
         tcpBuffer = Buffer.concat([tcpBuffer, data]);
         while (true) {
@@ -280,7 +276,6 @@ app.whenReady().then(() => {
         }
     });
 
-    // --- Listeners 'error', 'close', 'activate' ---
     client.on('error', (err) => {
         console.error('Erro no Socket TCP:', err.message);
         const activeWindow = (mainWindow && !mainWindow.isDestroyed()) ? mainWindow :
@@ -292,35 +287,29 @@ app.whenReady().then(() => {
          if (!authWindow) createAuthWindow();
     });
 
-    // --- CORRIGIDO: Listener de Fechamento TCP (usando 'client' e lógica antiga) ---
-  client.on('close', () => {
-    console.log('Conexão com o servidor de sinalização fechada.');
-    tcpBuffer = Buffer.alloc(0); // Limpa buffer
+    client.on('close', () => {
+        console.log('Conexão com o servidor de sinalização fechada.');
+        tcpBuffer = Buffer.alloc(0); // Limpa buffer
 
-    // Verifica se o fechamento foi iniciado pelo usuário via 'quit-app'
-    if (userRequestedQuit) {
-        console.log("Socket fechado durante o processo de quit iniciado pelo usuário. Não recriar janela.");
-        // Não faz nada, deixa o app.quit() terminar.
-    } else {
-        // O fechamento NÃO foi iniciado pelo usuário (ex: servidor caiu, rede falhou)
-        console.log("Socket fechado inesperadamente (não iniciado pelo quit-app).");
-        if (mainWindow && !mainWindow.isDestroyed()) {
-            console.log("Fechando mainWindow e recriando authWindow.");
-            mainWindow.close();
-            // mainWindow = null; // Opcional
-            createAuthWindow();
-        } else if (!authWindow || authWindow.isDestroyed()) {
-            // Se nem a main nem a auth estavam abertas, recria a auth
-            console.log("Recriando authWindow após fechamento inesperado (sem mainWindow).");
-            createAuthWindow();
+        if (userRequestedQuit) {
+            console.log("Socket fechado durante o processo de quit iniciado pelo usuário. Não recriar janela.");
+        } else {
+            console.log("Socket fechado inesperadamente (não iniciado pelo quit-app).");
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                console.log("Fechando mainWindow e recriando authWindow.");
+                mainWindow.close();
+                createAuthWindow();
+            } else if (!authWindow || authWindow.isDestroyed()) {
+                console.log("Recriando authWindow após fechamento inesperado (sem mainWindow).");
+                createAuthWindow();
+            }
         }
-    }
-});
+    });
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
-          if (!client.connecting && client.destroyed) { // Usa 'client'
-             client.connect(SERVER_PORT, SERVER_HOST); // Usa 'client'
+          if (!client.connecting && client.destroyed) { 
+             client.connect(SERVER_PORT, SERVER_HOST);
           } else if (!authWindow) {
              createAuthWindow();
           }
@@ -329,7 +318,6 @@ app.whenReady().then(() => {
 
 }); // Fim do app.whenReady()
 
-// --- OUVINTES IPC ---
 ipcMain.on('login-success', () => {
   if (authWindow) { authWindow.close(); authWindow = null; }
   createMainWindow();
@@ -344,7 +332,7 @@ ipcMain.on('to-server', (event, data) => {
       }
       const messageBuffer = createBinaryMessage(commandCode, data.payload);
       console.log(`Electron -> Servidor de sinalização: Cmd=${data.command}(0x${commandCode.toString(16)}), Len=${messageBuffer.length - 3}`);
-      client.write(messageBuffer); // Usa 'client'
+      client.write(messageBuffer);
   } catch (e) {
     console.error('Falha ao criar ou enviar mensagem binária:', e);
   }
@@ -352,10 +340,11 @@ ipcMain.on('to-server', (event, data) => {
 
 ipcMain.on('quit-app', () => {
   console.log("Recebido 'quit-app', definindo flag e encerrando a aplicação...");
-  userRequestedQuit = true; // <-- DEFINE A FLAG AQUI
+  userRequestedQuit = true; 
   app.quit();
 });
-// --- Lógica de Encerramento do App ---
+
+// Lógica de Encerramento do App
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
@@ -365,6 +354,6 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
     console.log("App 'before-quit' event. Destruindo socket TCP se existir.");
     if (client && !client.destroyed) {
-        client.destroy(); // Garante que o socket TCP seja fechado
+        client.destroy(); 
     }
 });

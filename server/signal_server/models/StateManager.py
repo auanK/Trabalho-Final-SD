@@ -1,4 +1,6 @@
 import asyncio
+import socket 
+import threading 
 
 from .ConnectedUser import ConnectedUser
 
@@ -6,33 +8,55 @@ from .ConnectedUser import ConnectedUser
 class _StateManager:
     def __init__(self):
         self._connected_users: dict[str, ConnectedUser] = {}
+        self._lock = threading.Lock() # Um Lock normal é o correto
 
-    def add_user(self, nickname: str, writer: asyncio.StreamWriter) -> bool:
-        if nickname in self._connected_users:
-            return False
-        
-        user = ConnectedUser(nickname, writer)
-        self._connected_users[nickname] = user
-        return True
-
-    def remove_user(self, nickname: str) -> ConnectedUser | None:
-        if nickname in self._connected_users:
-            return self._connected_users.pop(nickname)
-        return None
-
-    def get_user(self, nickname: str) -> ConnectedUser | None:
+    # --- NOVA FUNÇÃO INTERNA ---
+    def _get_user_unlocked(self, nickname: str) -> ConnectedUser | None:
+        """ 
+        Versão interna de get_user que assume que o lock JÁ FOI ADQUIRIDO.
+        Não adquire o lock.
+        """
         return self._connected_users.get(nickname)
 
-    def get_all_users_items(self):
-        return self._connected_users.items()
+    def add_user(self, nickname: str, conn: socket.socket) -> bool:
+        with self._lock: # Adquire o lock
+            if nickname in self._connected_users:
+                return False
+            
+            user = ConnectedUser(nickname, conn)
+            self._connected_users[nickname] = user
+            return True
+        # Libera o lock
 
+    def remove_user(self, nickname: str) -> ConnectedUser | None:
+        with self._lock: # Adquire o lock
+            if nickname in self._connected_users:
+                return self._connected_users.pop(nickname)
+            return None
+        # Libera o lock
+
+    # --- MODIFICADO ---
+    def get_user(self, nickname: str) -> ConnectedUser | None:
+        with self._lock: # Adquire o lock
+            # Chama a versão interna que não tenta readquirir o lock
+            return self._get_user_unlocked(nickname) 
+        # Libera o lock
+
+    def get_all_users_items(self):
+        with self._lock: # Adquire o lock
+            return list(self._connected_users.items())
+        # Libera o lock
+
+    # --- MODIFICADO ---
     def get_user_status_str(self, nickname: str) -> str:
-        user = self.get_user(nickname)
-        if user:
-            return user.get_status_str()
-        return 'Offline'
+        with self._lock: # Adquire o lock
+            # Chama a versão interna, evitando o lock duplo
+            user = self._get_user_unlocked(nickname) 
+            if user:
+                return user.get_status_str()
+            return 'Offline'
+        # Libera o lock
 
 
 # Instância global usada por todos os outros módulos.
-# So armazena usuarios online ou em ligação.
 state_manager = _StateManager()

@@ -1,38 +1,45 @@
-import asyncio
 import logging
-from client_handler import handle_client
+import socket
+import threading
+from client_handler import handle_client 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(threadName)s - %(message)s')
 
-async def main():
-    
-    # 0.0.0.0 é um endereço IP especial. é uma instrução que significa: "Escute em TODAS as interfaces de rede que este computador possui."
+def main():
     server_host = '0.0.0.0'
     server_port = 8888      
     
-    # Servidor é criado e preparado aqui(n iniciado)
-    # 'Server' não é o socket; é um gerenciador de sockets. Ele armazena a função 
-    # handle_client como o callback a ser usado quando uma nova conexão for aceita.
-    server = await asyncio.start_server(
-        handle_client, server_host, server_port
-    )
-    
-    addrs = ', '.join(str(sock.getsockname()) for sock in server.sockets)
-    logging.info(f"Servidor de Sinalização iniciado em {addrs}")
-    
-    # server.serve_forever() é um método do objeto asyncio.Server. Ele diz ao loop de eventos do asyncio
-    # para começar a monitorar os sockets que foram criados e vinculados para conexões de entrada.
-    async with server:
-        await server.serve_forever()
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Criando socket TCP/IP
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Permite reiniciar o server com a mesma porta 
 
-if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        server_socket.bind((server_host, server_port)) # ligando o socket a porta e ip
+        
+        server_socket.listen() # modo de escuta
+
+        logging.info(f"Servidor de Sinalização iniciado em {server_host}:{server_port}")
+
+        while True: # loop para aceitar conexões
+            socket_cli, addr = server_socket.accept() # accept é bloqueante, só continua quando um novo cliente se conecta.
+            # socket_cli = Este é o novo socket do cliente atual. 
+            # socket_cli = É o endereço do cliente 
+            
+            # a thread principal chama outra thread pra lidar com o cliente (client_handle)
+            client_thread = threading.Thread(
+                target=handle_client, 
+                args=(socket_cli, addr), 
+                daemon=True,
+                name=f"Client-{addr[0]}:{addr[1]}" # da um nome a tread
+            )
+            client_thread.start()
+
     except KeyboardInterrupt:
         logging.info("Servidor desligado manualmente.")
+    except Exception as e:
+        logging.error(f"Erro fatal no servidor: {e}", exc_info=True)
+    finally:
+        logging.info("Fechando socket do servidor.")
+        server_socket.close()
 
-
-# O asyncio pega a função handle_client e a armazena.
-# Um Evento Ocorre: Um cliente se conecta à porta 8888. asyncio eeage ao Evento aceitando a conexão 
-# Ele cria dois objetos de baixo nível para aquela conexão específica: o reader (para ler dados) e o writer (para escrever dados).
-# O asyncio executa a função  handle_client passando os argumentos que ele acabou de criar
+if __name__ == "__main__":
+    main()
