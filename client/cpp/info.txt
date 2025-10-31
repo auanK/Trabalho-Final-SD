@@ -1,1 +1,0 @@
-g++ src/test_main.cpp src/audio_engine.cpp -o client.exe -Iinclude -static-libgcc -static-libstdc++ -std=c++17 -Wall -Wextra -O2 -Wl,-Bstatic -lportaudio -lopus -Wl,-Bdynamic -lws2_32 -lwinmm -lole32 -loleaut32 -lsetupapi
