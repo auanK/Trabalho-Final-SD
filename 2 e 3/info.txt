@@ -1,0 +1,16 @@
+Teste de Arquivo (Q2.b.ii e Q3.c)
+python test_file.py
+Q2.b.ii (Escrever em FileOutputStream)
+Q3.c (Ler de FileInputStream)
+
+Teste de Saída/Entrada Padrão (Q2.b.i e Q3.b)
+python test_stdout.py | python test_stdin.py
+Q2.b.i (Escrever em System.out)
+Q3.b (Ler de System.in)
+
+Teste de Servidor Remoto (TCP)
+Terminal 1: python test_tcp_server.py
+Q3.d (Ler de um socket TCP - Servidor)
+
+Terminal 2: python test_tcp_client.py
+Q2.b.iii (Escrever em um socket TCP - Cliente)
