@@ -29,10 +29,6 @@ def handle_login(context, payload):
 
         client_handler.broadcast_status_update(nickname, UserStatus.ONLINE.value)
 
-    elif message == "Usuario ja conectado.":
-        context['conn'].close() 
-        return 
-
     client_handler.send_binary_message(context['conn'], CommandCode.LOGIN_RESPONSE, response_payload)
 
 # Fornece dados iniciais ao cliente após o login (amigos e pedidos pendentes)
