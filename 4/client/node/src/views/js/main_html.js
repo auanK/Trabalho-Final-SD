@@ -33,6 +33,7 @@ const activeCallState = document.getElementById('active-call-state');
 const activeCallLabel = document.getElementById('active-call-label');
 const endCallBtn = document.getElementById('end-call-btn');
 
+// Estado da Aplicação
 const state = {
     currentUser: localStorage.getItem('currentUserNickname') || 'user_error',
     contacts: new Map(),
@@ -41,28 +42,28 @@ const state = {
         status: 'idle'
     }
 };
-
 loggedInUserNickname.innerText = state.currentUser;
 
+// Renderizando a lista de contatos
 function renderContacts() {
     contactList.innerHTML = '';
     for (const contact of state.contacts.values()) {
         const statusClass = (contact.status || 'Offline').toLowerCase().replace(' ', '-');
         const contactItem = document.createElement('li');
         contactItem.innerHTML = `
-            <div class="contact-info">
-                <span class="status-indicator ${statusClass}"></span>
-                <span class="contact-nickname">${contact.nickname}</span>
-            </div>
-            <button class="call-btn" data-nickname="${contact.nickname}" ${contact.status !== 'Online' ? 'disabled' : ''}>Ligar</button>
-        `;
+        <div class="contact-info">
+            <span class="status-indicator ${statusClass}"></span>
+            <span class="contact-nickname">${contact.nickname}</span>
+        </div>
+        <button class="call-btn" data-nickname="${contact.nickname}" ${contact.status !== 'Online' ? 'disabled' : ''}>Ligar</button>
+        `;
         contactList.appendChild(contactItem);
     }
     addCallButtonListeners();
 }
 
-function showDialog(dialogElement) { dialogElement.style.display = 'flex'; }
 
+function showDialog(dialogElement) { dialogElement.style.display = 'flex'; }
 function hideDialog(dialogElement) { dialogElement.style.display = 'none'; }
 
 function searchContact() {
@@ -220,6 +221,7 @@ function addCallButtonListeners() {
     });
 }
 
+// VoIP C++ Event Handler
 function onVoipEvent(event) {
     console.log(`[EVENTO DO C++ (VoIP)]: Tipo = ${event.type}`);
 
@@ -240,6 +242,7 @@ function onVoipEvent(event) {
     }
 }
 
+// Iniciando Sessão VoIP
 function startVoipSession(callData) {
     if (state.currentCall.status === 'active') {
         console.warn("[UI] Já estava em chamada, ignorando startVoipSession.");
@@ -260,7 +263,7 @@ function startVoipSession(callData) {
     const result = window.voip.startCall(voipOptions, onVoipEvent);
 
     if (result.success) {
-        console.log("✅ Motor VoIP C++ iniciado com sucesso!");
+        console.log("Motor VoIP C++ iniciado com sucesso!");
         state.currentCall.status = 'active';
 
         stopAllCallSounds();
@@ -271,11 +274,13 @@ function startVoipSession(callData) {
         showDialog(callWindowDialog);
 
     } else {
-        console.error("❌ FALHA ao iniciar o motor VoIP C++:", result.error);
+        console.error("FALHA ao iniciar o motor VoIP C++:", result.error);
         alert(`Erro ao iniciar áudio: ${result.error}`);
     }
 }
 
+
+// Recebendo respostas do servidor (passaram primeiro por main.js)
 window.electron.receive('from-server', (response) => {
     console.log("Recebido do Servidor:", response);
     const command = response.command;
@@ -297,6 +302,7 @@ window.electron.receive('from-server', (response) => {
         }
     };
 
+    // Lidando com diferentes comandos do servidor
     switch (command) {
         case 'FRIEND_LIST':
             state.contacts.clear();
@@ -395,6 +401,8 @@ window.electron.receive('from-server', (response) => {
             break;
     }
 });
+
+// Inicialização
 renderContacts();
 window.electron.send('to-server', {
     command: 'GET_INITIAL_DATA',

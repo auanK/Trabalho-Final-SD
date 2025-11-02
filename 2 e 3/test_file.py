@@ -10,7 +10,6 @@ records_to_write = [
 ]
 TEST_FILE_NAME = "test_data.bin"
 
-# Teste Q2.b.ii: Escreve 2 dos 3 objetos em um FileOutputStream.
 def test_write_to_file():
     print("Teste 2.b.ii: Escrevendo em Arquivo (FileOutputStream)")
     
@@ -29,7 +28,6 @@ def test_write_to_file():
         
     print(f"Arquivo '{TEST_FILE_NAME}' criado.\n")
 
-# Teste Q3.c: Lê os objetos de um FileInputStream.
 def test_read_from_file():
     print("Teste 3.c: Lendo de Arquivo (FileInputStream)")
     
@@ -52,8 +50,8 @@ def test_read_from_file():
     assert records_read[0].nickname == "auank"
     assert records_read[1].nickname == "teste"
     print("\nVerificação: Sucesso! Dados lidos correspondem aos dados escritos.")
-    
 
+# Executando os dois testes
 if __name__ == "__main__":
     test_write_to_file()
     test_read_from_file()

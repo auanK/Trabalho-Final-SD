@@ -10,7 +10,9 @@ const SERVER_PORT = 8888;
 let userRequestedQuit = false;
 
 const client = new net.Socket();
-let tcpBuffer = Buffer.alloc(0); 
+let tcpBuffer = Buffer.alloc(0);
+
+// Mapeamento de códigos de comando
 const CommandCode = {
     REGISTER: 0x01, LOGIN: 0x02, GET_INITIAL_DATA: 0x03, SEARCH_USER: 0x04,
     ADD_FRIEND: 0x05, ACCEPT_FRIEND: 0x06, REJECT_FRIEND: 0x07, INVITE: 0x10,
@@ -201,6 +203,7 @@ function deserializePayload(commandCode, payloadBuffer) {
     }
 }
 
+// Cria mensagem binária completa (cabeçalho + payload)
 function createBinaryMessage(commandCode, payload) {
     const payloadBuffer = serializePayload(commandCode, payload);
     const headerBuffer = Buffer.alloc(3);
@@ -209,6 +212,8 @@ function createBinaryMessage(commandCode, payload) {
     return Buffer.concat([headerBuffer, payloadBuffer]);
 }
 
+
+// Criação das janelas Auth e Main
 function createAuthWindow() {
   if (authWindow) return;
   authWindow = new BrowserWindow({
@@ -223,7 +228,6 @@ function createAuthWindow() {
   authWindow.loadFile('src/views/auth.html');
   authWindow.on('closed', () => { authWindow = null; });
 }
-
 function createMainWindow() {
   if (mainWindow) return;
   mainWindow = new BrowserWindow({
@@ -241,6 +245,8 @@ function createMainWindow() {
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
+
+// Quando o app estiver pronto, conectar ao servidor, cria a janela de autenticação e lida dados do servidor
 app.whenReady().then(() => {
     console.log('Tentando conectar ao servidor Python...');
     client.connect(SERVER_PORT, SERVER_HOST, () => {
@@ -249,6 +255,7 @@ app.whenReady().then(() => {
         createAuthWindow();
     });
 
+    // Recebendo dados do Servidor
     client.on('data', (data) => {
         tcpBuffer = Buffer.concat([tcpBuffer, data]);
         while (true) {
@@ -266,13 +273,20 @@ app.whenReady().then(() => {
                 const response = { command: commandName, payload: payload };
                 const activeWindow = (mainWindow && !mainWindow.isDestroyed()) ? mainWindow :
                                      (authWindow && !authWindow.isDestroyed()) ? authWindow : null;
+                                
+                // Enviando dados desserializados para a janela ativa                     
                 if (activeWindow) {
                     activeWindow.webContents.send('from-server', response);
-                } else { console.warn("Dados recebidos sem janela ativa."); }
-            } catch (e) { console.error('Erro ao desserializar/encaminhar:', e); }
+                } else { 
+                    console.warn("Dados recebidos sem janela ativa."); 
+                }
+            } catch (e) { 
+                console.error('Erro ao desserializar/encaminhar:', e);
+            }
         }
     });
 
+    // Tratamento de erros de conexão
     client.on('error', (err) => {
         console.error('Erro no Socket TCP:', err.message);
         const activeWindow = (mainWindow && !mainWindow.isDestroyed()) ? mainWindow :
@@ -284,6 +298,7 @@ app.whenReady().then(() => {
          if (!authWindow) createAuthWindow();
     });
 
+    // Tratamento de fechamento da conexão
     client.on('close', () => {
         console.log('Conexão com o servidor de sinalização fechada.');
         tcpBuffer = Buffer.alloc(0);
@@ -315,11 +330,13 @@ app.whenReady().then(() => {
 
 });
 
+// Lidando com login sucedido
 ipcMain.on('login-success', () => {
   if (authWindow) { authWindow.close(); authWindow = null; }
   createMainWindow();
 });
 
+// Envio de mensagens para o Servidor
 ipcMain.on('to-server', (event, data) => {
   try {
       const commandCode = CommandCode[data.command];
@@ -335,6 +352,7 @@ ipcMain.on('to-server', (event, data) => {
   }
 });
 
+// Tratamento do pedido de encerramento da aplicação
 ipcMain.on('quit-app', () => {
   console.log("Recebido 'quit-app', definindo flag e encerrando a aplicação...");
   userRequestedQuit = true; 

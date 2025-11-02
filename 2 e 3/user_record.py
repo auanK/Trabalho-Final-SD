@@ -1,4 +1,3 @@
-# O POJO
 from dataclasses import dataclass
 
 @dataclass

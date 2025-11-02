@@ -1,19 +1,16 @@
-/*-------------------------------------------------------------------------------------------------------------*/
-/* RESET E CONFIGS INICIAS */
 :root {
-    /* Paleta e espaçamentos */
-    --bg: #181a1d;            /* Fundo principal */
-    --card: #25282c;          /* Cor para painéis e cards */
-    --border: #40444b;        /* Cor para bordas */
+    --bg: #181a1d;          
+    --card: #25282c;         
+    --border: #40444b;      
 
-    --text: #e0e0e0;          /* Cor principal do texto */
-    --muted: #8e9297;         /* Texto secundário */
+    --text: #e0e0e0;          
+    --muted: #8e9297;         
 
-    --primary: #7b2cbf;      /* para destaques */
-    --primary-hover: #9d4edd; /* para hover */
+    --primary: #7b2cbf;      
+    --primary-hover: #9d4edd; 
 
-    --success: #22c55e;       /* Verde*/
-    --danger: #ef4444;        /* Vermelho*/
+    --success: #22c55e;      
+    --danger: #ef4444;       
 
     --shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
 
@@ -21,7 +18,6 @@
     --gap: 14px;
     --container-width: 420px;
 
-    /* evita que o conteúdo force scroll vertical */
     max-height: calc(100vh - 96px);
     min-height: min(var(--min-window-height-auth), calc(100vh - 96px));
     min-width: min(var(--min-window-width-auth), 100%);
@@ -44,19 +40,19 @@ body {
 
 h1 {
     text-align: center;
-    color: var(--text); /* texto claro */
+    color: var(--text); 
     margin: 0 0 18px;
     font-size: 20px;
     letter-spacing: 0.2px;
 }
 
-/*-------------------------------------------------------------------------------------------------------------*/
+
 /* autenticação */
 .container {
     padding: 28px;
     max-width: var(--container-width);
     margin: 48px auto;
-    background: var(--card); /* cor card */
+    background: var(--card); 
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     width: 100%;
@@ -70,8 +66,8 @@ input[type="text"], input[type="password"] {
     margin-bottom: 12px;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: var(--bg); /* FUNDO DARK */
-    color: var(--text); /* TEXTO CLARO */
+    background: var(--bg); 
+    color: var(--text);
     font-size: 14px;
     outline: none;
     transition: border-color .12s ease, box-shadow .12s ease;
@@ -82,7 +78,6 @@ input[type="text"]:focus, input[type="password"]:focus {
     box-shadow: 0 0 10px rgba(0, 174, 255, 0.2);
 }
 
-/*-------------------------------------------------------------------------------------------------------------*/
 /* Botão principal e links */
 button {
     display: inline-block;
@@ -108,7 +103,6 @@ button:disabled {
     transform: none; 
 }
 
-/* Links e mensagens */
 a {
     color: var(--primary);
     text-decoration: none;
@@ -124,7 +118,6 @@ a {
 }
 
 
-/*-------------------------------------------------------------------------------------------------------------*/
 /* Janela principal */
 
 .main-container {
@@ -155,7 +148,6 @@ header {
 
 
 /* Painel de contatos */
-
 .contacts-panel { 
     padding: 30px 120px; 
 }
@@ -180,7 +172,7 @@ header {
 }
 #add-contact-btn:hover { background: var(--border); }
 
-/* Lista de contatos — estilo card */
+/* Lista de contatos*/
 .contact-list { 
     list-style: none; 
     padding: 0; 
@@ -203,7 +195,6 @@ header {
 
 .contact-info { display: flex; align-items: center; gap: 12px; }
 
-/* Botões de ação no item */
 .call-btn {
     width: auto; 
     padding: 8px 14px; 
@@ -218,7 +209,6 @@ header {
 .call-btn:not(:disabled):hover { background-color: var(--primary-hover); }
 
 
-/* Indicador de status */
 .status-indicator {
     width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--card); /* Borda para destacar do fundo */
 }
@@ -226,12 +216,11 @@ header {
 .status-indicator.offline { background-color: var(--muted); }
 .status-indicator.em-chamada { background-color: var(--danger); }
 
-/*-------------------------------------------------------------------------------------------------------------*/
 /* Diálogos e sobreposições */
 .dialog-overlay {
     position: fixed; 
     inset: 0; 
-    display: none; /* --- MODIFICADO --- (Estava 'flex', 'display: none' é o correto por padrão) */
+    display: none;
     justify-content: center; 
     align-items: center;
     background: rgba(10,12,20,0.6); 
@@ -253,38 +242,33 @@ header {
     background-color: var(--success);
 }
 
-/* --- MODIFICADO --- (Agrupei todos os botões de perigo) */
 #refuse-call-btn,
 #cancel-call-btn,
 #end-call-btn {
     background-color: var(--danger);
 }
 
-/* --- ADICIONADO --- (Estilos que estavam inline no HTML) */
 #search-result-area {
     display: none;
     margin-top: 20px;
 }
 
-/* --- ADICIONADO --- (Remove a margem da lista de contatos SÓ na busca) */
 #search-result-area .contact-list {
     margin: 0;
 }
 
-/* --- ADICIONADO --- (Deixa o nickname da busca em negrito) */
 #found-contact-nickname {
     font-weight: bold;
 }
 
-/* --- ADICIONADO --- (Esconde o estado de chamada ativa por padrão) */
 #active-call-state {
     display: none;
 }
 
 #send-request-btn {
-    width: auto; /* Remove o 'width: 100%' do seletor 'button' */
-    padding-left: 16px;  /* Adiciona um preenchimento para não ficar colado */
-    padding-right: 16px; /* Adiciona um preenchimento para não ficar colado */
+    width: auto;
+    padding-left: 16px; 
+    padding-right: 16px;
 }
 
 /* Responsividade simples */

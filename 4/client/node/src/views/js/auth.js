@@ -3,18 +3,20 @@ const registerForm = document.getElementById('register-form');
 const showRegisterLink = document.getElementById('show-register-link');
 const showLoginLink = document.getElementById('show-login-link');
 
+// Logica para alternar entre os formulários de login e registro
 showRegisterLink.addEventListener('click', (e) => {
     e.preventDefault();
     loginForm.style.display = 'none';
     registerForm.style.display = 'block';
 });
-
 showLoginLink.addEventListener('click', (e) => {
     e.preventDefault();
     registerForm.style.display = 'none';
     loginForm.style.display = 'block';
 });
 
+
+// Login
 const loginBtn = document.getElementById('login-btn');
 const loginErrorMsg = document.getElementById('login-error-msg');
 
@@ -37,6 +39,8 @@ loginBtn.addEventListener('click', () => {
     });
 });
 
+
+// Registro
 const registerBtn = document.getElementById('register-btn');
 const registerMsg = document.getElementById('register-msg');
 
@@ -68,6 +72,8 @@ registerBtn.addEventListener('click', () => {
     });
 });
 
+
+// Recebendo respostas do servidor (passaram primeiro por main.js)
 window.electron.receive('from-server', (response) => {
     console.log("Recebido do servidor:", response);
     const command = response.command;
@@ -93,6 +99,7 @@ window.electron.receive('from-server', (response) => {
     }
 });
 
+// Tratamento de erros de conexão
 window.electron.receive('server-error', (errorMessage) => {
     console.error("Erro do servidor:", errorMessage);
     loginErrorMsg.innerText = "Erro de conexão com o servidor.";
