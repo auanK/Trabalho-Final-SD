@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>VoiceIP - Principal</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+    <!--CONTEINER PRINCIPAL -->
+    <div class="main-container">
+        <!-- CONTEINER USER -->
+        <header>            
+            <div id="user-info">
+                <span class="status-indicator online"></span>
+                <span id="user-nickname"></span>
+            </div>
+            <button id="logout-btn">Logout</button>
+        </header>
+
+        <!-- PAINEL -->
+        <main>
+            <div class="contacts-panel">
+                
+                <!-- HEADER -->
+                <div class="panel-header">
+                    <h2>Lista de contatos</h2>
+                    <button id="add-contact-btn">+</button>
+                </div>
+                
+                <!-- LISTA DE CONTATOS -->
+                <ul id="contact-list" class="contact-list"></ul>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- RECEBIMENTO DE CHAMADA -->
+    <div id="incoming-call-dialog" class="dialog-overlay">
+        <div class="dialog-box">
+            <h3 id="caller-id-label"></h3>
+            <div class="dialog-buttons">
+                <button id="accept-call-btn">Aceitar</button>
+                <button id="refuse-call-btn">Recusar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BUSCAR CONTATO -->
+    <div id="add-contact-dialog" class="dialog-overlay">
+        <div class="dialog-box">
+            <h3>Adicionar Novo Contato</h3>
+            
+            <div class="search-form">
+                <input type="text" id="search-nickname-input" placeholder="Procurar por nickname...">
+                <button id="search-contact-btn">Procurar</button>
+            </div>
+
+            <div id="search-result-area">
+                <p>Usuário encontrado:</p>
+                <div class="contact-list" id="search-contact-list"> 
+                    <li>
+                        <div class="contact-info">
+                            <span id="found-contact-nickname"></span>
+                        </div>
+                        <button id="send-request-btn">Enviar Pedido</button>
+                    </li>
+                </div>
+            </div>
+            <p id="search-error-msg" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- EM CHAMADA -->
+    <div id="call-window-dialog" class="dialog-overlay">
+        <div class="dialog-box">
+            
+            <div id="outgoing-call-state">
+                <h3 id="outgoing-call-label">A ligar para...</h3>
+                <div class="dialog-buttons">
+                    <button id="cancel-call-btn" class="btn-danger">Cancelar</button>
+                </div>
+            </div>
+
+            <div id="active-call-state">
+                <h3 id="active-call-label">Em chamada com...</h3>
+                <div class="dialog-buttons">
+                    <button id="end-call-btn" class="btn-danger">Desligar</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <audio id="ringtone-sound" src="../assets/audios/ringtone.wav" loop></audio>
+    <audio id="dialing-sound" src="../assets/audios/phone-call-tone.wav" loop></audio>
+    <audio id="hangup-sound" src="../assets/audios/disconnect.wav"></audio>
+
+</body>   
+<script src="js/main_html.js"></script>
+</html>

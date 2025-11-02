@@ -1404,3 +1404,7 @@ dkms.conf
 *.uf2
 # Raspberry Pi Pico disassembler file
 *.dis
+
+voip.db
+
+voip_addon.node

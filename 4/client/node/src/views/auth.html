@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>VoiceIP - Autenticação</title>
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <div id="login-form">
+            <h1>Login</h1>
+            <input type="text" id="login-nickname" placeholder="Nickname">
+            <input type="password" id="login-password" placeholder="Senha">
+            <button id="login-btn">Entrar</button>
+            <p id="login-error-msg" class="error-msg"></p>
+            <a href="#" id="show-register-link">Ainda não tem conta? Registe-se</a>
+        </div>
+
+        <div id="register-form" style="display: none;">
+            <h1>Criar Conta</h1>
+            <input type="text" id="register-name" placeholder="Nome Completo">
+            <input type="text" id="register-nickname" placeholder="Nickname desejado">
+            <input type="password" id="register-password" placeholder="Senha">
+            <input type="password" id="register-confirm-password" placeholder="Confirme a Senha">
+            <button id="register-btn">Criar Conta</button>
+            <p id="register-msg" class="error-msg"></p>
+            <a href="#" id="show-login-link">Já tem uma conta? Faça o login</a>
+        </div>
+    </div>
+</body>
+
+<script src="js/auth.js"></script>
+
+</html>

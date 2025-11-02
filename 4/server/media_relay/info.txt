@@ -1,0 +1,1 @@
+g++ src/main.cpp src/udp_relay_server.cpp -o relay_server.exe -Iinclude -static-libgcc -static-libstdc++ -std=c++17 -Wall -Wextra -O2 -lws2_32

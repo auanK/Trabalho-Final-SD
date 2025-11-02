@@ -1,0 +1,296 @@
+/*-------------------------------------------------------------------------------------------------------------*/
+/* RESET E CONFIGS INICIAS */
+:root {
+    /* Paleta e espaçamentos */
+    --bg: #181a1d;            /* Fundo principal */
+    --card: #25282c;          /* Cor para painéis e cards */
+    --border: #40444b;        /* Cor para bordas */
+
+    --text: #e0e0e0;          /* Cor principal do texto */
+    --muted: #8e9297;         /* Texto secundário */
+
+    --primary: #7b2cbf;      /* para destaques */
+    --primary-hover: #9d4edd; /* para hover */
+
+    --success: #22c55e;       /* Verde*/
+    --danger: #ef4444;        /* Vermelho*/
+
+    --shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+
+    --radius: 10px;
+    --gap: 14px;
+    --container-width: 420px;
+
+    /* evita que o conteúdo force scroll vertical */
+    max-height: calc(100vh - 96px);
+    min-height: min(var(--min-window-height-auth), calc(100vh - 96px));
+    min-width: min(var(--min-window-width-auth), 100%);
+
+    width: 100%;
+    box-sizing: border-box;
+    overflow: auto;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); 
+    margin: 0;
+    color: var(--text); 
+
+}
+
+h1 {
+    text-align: center;
+    color: var(--text); /* texto claro */
+    margin: 0 0 18px;
+    font-size: 20px;
+    letter-spacing: 0.2px;
+}
+
+/*-------------------------------------------------------------------------------------------------------------*/
+/* autenticação */
+.container {
+    padding: 28px;
+    max-width: var(--container-width);
+    margin: 48px auto;
+    background: var(--card); /* cor card */
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Campos de formulário */
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg); /* FUNDO DARK */
+    color: var(--text); /* TEXTO CLARO */
+    font-size: 14px;
+    outline: none;
+    transition: border-color .12s ease, box-shadow .12s ease;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 174, 255, 0.2);
+}
+
+/*-------------------------------------------------------------------------------------------------------------*/
+/* Botão principal e links */
+button {
+    display: inline-block;
+    width: 100%;
+    max-width: 400px; 
+    padding: 11px 14px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary);
+    color: var(--bg); 
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color .12s ease, transform .08s ease;
+}
+
+button:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+button:disabled {
+    background-color: var(--border);
+    color: var(--muted);
+    cursor: not-allowed;
+    transform: none; 
+}
+
+/* Links e mensagens */
+a {
+    color: var(--primary);
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+}
+.error-msg {
+    color: var(--danger);
+    text-align: center;
+    min-height: 20px;
+    font-size: 13px;
+}
+
+
+/*-------------------------------------------------------------------------------------------------------------*/
+/* Janela principal */
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: var(--bg);
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 120px;
+    background: rgba(37, 40, 44, 0.7); 
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+#user-info { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    font-size: 18px; 
+    color: var(--text); 
+}
+
+
+/* Painel de contatos */
+
+.contacts-panel { 
+    padding: 30px 120px; 
+}
+.panel-header h2 { 
+    color: var(--text); margin: 0;
+}
+
+.panel-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+#add-contact-btn {
+    width: 36px; 
+    height: 36px; 
+    font-size: 20px; 
+    line-height: 36px; 
+    text-align: center; 
+    padding: 0;
+    border-radius: 8px; 
+    background: var(--card); 
+    color: var(--primary); 
+    border: 1px solid var(--border); 
+    cursor: pointer;
+}
+#add-contact-btn:hover { background: var(--border); }
+
+/* Lista de contatos — estilo card */
+.contact-list { 
+    list-style: none; 
+    padding: 0; 
+    margin: 18px 0 0; 
+    display: grid; gap: 
+    10px; 
+}
+.contact-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--card); 
+    border: 1px solid var(--border);
+    box-shadow: none;
+    transition: transform .12s ease, background-color .12s ease;
+}
+.contact-list li:hover { transform: translateY(-3px); background-color: #31343a; }
+
+.contact-info { display: flex; align-items: center; gap: 12px; }
+
+/* Botões de ação no item */
+.call-btn {
+    width: auto; 
+    padding: 8px 14px; 
+    font-size: 14px; 
+    border-radius: 8px;
+    background: var(--primary);
+    color: #111; 
+    border: none; 
+    cursor: pointer; 
+    font-weight: bold;
+}
+.call-btn:not(:disabled):hover { background-color: var(--primary-hover); }
+
+
+/* Indicador de status */
+.status-indicator {
+    width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--card); /* Borda para destacar do fundo */
+}
+.status-indicator.online { background-color: var(--success); }
+.status-indicator.offline { background-color: var(--muted); }
+.status-indicator.em-chamada { background-color: var(--danger); }
+
+/*-------------------------------------------------------------------------------------------------------------*/
+/* Diálogos e sobreposições */
+.dialog-overlay {
+    position: fixed; 
+    inset: 0; 
+    display: none; /* --- MODIFICADO --- (Estava 'flex', 'display: none' é o correto por padrão) */
+    justify-content: center; 
+    align-items: center;
+    background: rgba(10,12,20,0.6); 
+    backdrop-filter: blur(5px); 
+    z-index: 60;
+}
+
+.dialog-box {
+    width: min(420px, 92%);
+    background: var(--card);
+    padding: 26px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+.dialog-buttons { margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+#accept-call-btn{
+    background-color: var(--success);
+}
+
+/* --- MODIFICADO --- (Agrupei todos os botões de perigo) */
+#refuse-call-btn,
+#cancel-call-btn,
+#end-call-btn {
+    background-color: var(--danger);
+}
+
+/* --- ADICIONADO --- (Estilos que estavam inline no HTML) */
+#search-result-area {
+    display: none;
+    margin-top: 20px;
+}
+
+/* --- ADICIONADO --- (Remove a margem da lista de contatos SÓ na busca) */
+#search-result-area .contact-list {
+    margin: 0;
+}
+
+/* --- ADICIONADO --- (Deixa o nickname da busca em negrito) */
+#found-contact-nickname {
+    font-weight: bold;
+}
+
+/* --- ADICIONADO --- (Esconde o estado de chamada ativa por padrão) */
+#active-call-state {
+    display: none;
+}
+
+#send-request-btn {
+    width: auto; /* Remove o 'width: 100%' do seletor 'button' */
+    padding-left: 16px;  /* Adiciona um preenchimento para não ficar colado */
+    padding-right: 16px; /* Adiciona um preenchimento para não ficar colado */
+}
+
+/* Responsividade simples */
+@media (max-width: 480px) {
+    :root { 
+        --container-width: calc(100% - 32px); 
+        --gap: 12px; 
+    }
+}
