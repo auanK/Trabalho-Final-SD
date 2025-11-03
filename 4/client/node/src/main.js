@@ -1,14 +1,15 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const net = require('net');
+const fs = require('fs');
 
 let authWindow;
 let mainWindow;
 
-const SERVER_HOST = '100.69.162.88';
-const SERVER_PORT = 8888;
-let userRequestedQuit = false;
+let SERVER_HOST;
+let SERVER_PORT;
 
+let userRequestedQuit = false;
 const client = new net.Socket();
 let tcpBuffer = Buffer.alloc(0);
 
@@ -49,9 +50,9 @@ function serializeBool(boolVal) {
 }
 
 function deserializeBool(buffer, offset = 0) {
-     if (buffer.length < offset + 1) throw new Error("Buffer insuficiente (bool)");
-     const val = buffer.readUInt8(offset);
-     return { value: val !== 0, nextOffset: offset + 1 };
+    if (buffer.length < offset + 1) throw new Error("Buffer insuficiente (bool)");
+    const val = buffer.readUInt8(offset);
+    return { value: val !== 0, nextOffset: offset + 1 };
 }
 
 function serializeUInt16BE(num) {
@@ -61,9 +62,9 @@ function serializeUInt16BE(num) {
 }
 
 function deserializeUInt16BE(buffer, offset = 0) {
-     if (buffer.length < offset + 2) throw new Error("Buffer insuficiente (UInt16)");
-     const val = buffer.readUInt16BE(offset);
-     return { value: val, nextOffset: offset + 2 };
+    if (buffer.length < offset + 2) throw new Error("Buffer insuficiente (UInt16)");
+    const val = buffer.readUInt16BE(offset);
+    return { value: val, nextOffset: offset + 2 };
 }
 
 function serializePayload(commandCode, payload) {
@@ -88,8 +89,8 @@ function serializePayload(commandCode, payload) {
             buffers.push(serializeString(payload.caller_nickname));
         }
         else if (commandCode === CommandCode.REGISTER_RESPONSE || commandCode === CommandCode.LOGIN_RESPONSE ||
-                 commandCode === CommandCode.ADD_FRIEND_RESPONSE || commandCode === CommandCode.INVITE_RESPONSE ||
-                 commandCode === CommandCode.ERROR) {
+            commandCode === CommandCode.ADD_FRIEND_RESPONSE || commandCode === CommandCode.INVITE_RESPONSE ||
+            commandCode === CommandCode.ERROR) {
             buffers.push(serializeBool(payload.success));
             buffers.push(serializeString(payload.message));
             if (commandCode === CommandCode.LOGIN_RESPONSE && payload.success) {
@@ -104,8 +105,8 @@ function serializePayload(commandCode, payload) {
             });
         }
         else {
-             console.warn(`Serialização manual não implementada para ${CODE_TO_COMMAND_NAME[commandCode]}, enviando payload vazio.`);
-             return Buffer.alloc(0);
+            console.warn(`Serialização manual não implementada para ${CODE_TO_COMMAND_NAME[commandCode]}, enviando payload vazio.`);
+            return Buffer.alloc(0);
         }
         return Buffer.concat(buffers);
     } catch (e) {
@@ -120,8 +121,8 @@ function deserializePayload(commandCode, payloadBuffer) {
     try {
         if (commandCode === CommandCode.REGISTER_RESPONSE || commandCode === CommandCode.LOGIN_RESPONSE ||
             commandCode === CommandCode.ADD_FRIEND_RESPONSE || commandCode === CommandCode.INVITE_RESPONSE ||
-            commandCode === CommandCode.ERROR)
-        {
+            commandCode === CommandCode.ERROR) 
+            {
             let result = deserializeBool(payloadBuffer, offset); payload.success = result.value; offset = result.nextOffset;
             result = deserializeString(payloadBuffer, offset); payload.message = result.value; offset = result.nextOffset;
             if (commandCode === CommandCode.LOGIN_RESPONSE && payload.success) {
@@ -146,14 +147,14 @@ function deserializePayload(commandCode, payloadBuffer) {
             }
         }
         else if (commandCode === CommandCode.SEARCH_RESPONSE) {
-             let result = deserializeBool(payloadBuffer, offset); payload.success = result.value; offset = result.nextOffset;
-             result = deserializeUInt16BE(payloadBuffer, offset); const count = result.value; offset = result.nextOffset;
-             payload.results = [];
-             for (let i = 0; i < count; i++) {
-                 let nickRes = deserializeString(payloadBuffer, offset); offset = nickRes.nextOffset;
-                 let nameRes = deserializeString(payloadBuffer, offset); offset = nameRes.nextOffset;
-                 payload.results.push({ nickname: nickRes.value, name: nameRes.value });
-             }
+            let result = deserializeBool(payloadBuffer, offset); payload.success = result.value; offset = result.nextOffset;
+            result = deserializeUInt16BE(payloadBuffer, offset); const count = result.value; offset = result.nextOffset;
+            payload.results = [];
+            for (let i = 0; i < count; i++) {
+                let nickRes = deserializeString(payloadBuffer, offset); offset = nickRes.nextOffset;
+                let nameRes = deserializeString(payloadBuffer, offset); offset = nameRes.nextOffset;
+                payload.results.push({ nickname: nickRes.value, name: nameRes.value });
+            }
         }
         else if (commandCode === CommandCode.INCOMING_FRIEND_REQUEST) {
             let result = deserializeString(payloadBuffer, offset); payload.from_nickname = result.value; offset = result.nextOffset;
@@ -162,7 +163,7 @@ function deserializePayload(commandCode, payloadBuffer) {
             let result = deserializeString(payloadBuffer, offset); payload.by_nickname = result.value; offset = result.nextOffset;
             result = deserializeString(payloadBuffer, offset); payload.status = result.value; offset = result.nextOffset;
         }
-         else if (commandCode === CommandCode.INCOMING_CALL) {
+        else if (commandCode === CommandCode.INCOMING_CALL) {
             let result = deserializeString(payloadBuffer, offset); payload.from_nickname = result.value; offset = result.nextOffset;
         }
         else if (commandCode === CommandCode.CALL_ACCEPTED) {
@@ -172,22 +173,22 @@ function deserializePayload(commandCode, payloadBuffer) {
             result = deserializeString(payloadBuffer, offset); payload.token = result.value; offset = result.nextOffset;
         }
         else if (commandCode === CommandCode.CALL_REJECTED) {
-             let result = deserializeString(payloadBuffer, offset); payload.callee_nickname = result.value; offset = result.nextOffset;
+            let result = deserializeString(payloadBuffer, offset); payload.callee_nickname = result.value; offset = result.nextOffset;
         }
         else if (commandCode === CommandCode.CALL_ENDED) {
-             let result = deserializeString(payloadBuffer, offset); payload.from_nickname = result.value; offset = result.nextOffset;
+            let result = deserializeString(payloadBuffer, offset); payload.from_nickname = result.value; offset = result.nextOffset;
         }
         else if (commandCode === CommandCode.STATUS_UPDATE) {
             let result = deserializeString(payloadBuffer, offset); payload.nickname = result.value; offset = result.nextOffset;
             result = deserializeString(payloadBuffer, offset); payload.status = result.value; offset = result.nextOffset;
         }
         else if (commandCode === CommandCode.REGISTER || commandCode === CommandCode.LOGIN ||
-                 commandCode === CommandCode.GET_INITIAL_DATA || commandCode === CommandCode.SEARCH_USER ||
-                 commandCode === CommandCode.ADD_FRIEND || commandCode === CommandCode.ACCEPT_FRIEND ||
-                 commandCode === CommandCode.REJECT_FRIEND || commandCode === CommandCode.INVITE ||
-                 commandCode === CommandCode.ACCEPT || commandCode === CommandCode.REJECT ||
-                 commandCode === CommandCode.BYE)
-        { }
+            commandCode === CommandCode.GET_INITIAL_DATA || commandCode === CommandCode.SEARCH_USER ||
+            commandCode === CommandCode.ADD_FRIEND || commandCode === CommandCode.ACCEPT_FRIEND ||
+            commandCode === CommandCode.REJECT_FRIEND || commandCode === CommandCode.INVITE ||
+            commandCode === CommandCode.ACCEPT || commandCode === CommandCode.REJECT ||
+            commandCode === CommandCode.BYE) 
+            { }
         else { throw new Error(`Desserialização não implementada para ${CODE_TO_COMMAND_NAME[commandCode]}`); }
 
         if (offset !== payloadBuffer.length) {
@@ -215,39 +216,66 @@ function createBinaryMessage(commandCode, payload) {
 
 // Criação das janelas Auth e Main
 function createAuthWindow() {
-  if (authWindow) return;
-  authWindow = new BrowserWindow({
-    width: 400, height: 600, minWidth: 400, minHeight: 600, maxWidth: 400, maxHeight: 600,
-    webPreferences: { 
-        preload: path.join(__dirname, 'preload.js'),
-        nodeIntegration: false,
-        contextIsolation: true,
-        sandbox: false 
-    }
-  });
-  authWindow.loadFile('src/views/auth.html');
-  authWindow.on('closed', () => { authWindow = null; });
+    if (authWindow) return;
+    authWindow = new BrowserWindow({
+        width: 400, height: 600, minWidth: 400, minHeight: 600, maxWidth: 400, maxHeight: 600,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: false
+        }
+    });
+    authWindow.loadFile('src/views/auth.html');
+    authWindow.on('closed', () => { authWindow = null; });
 }
 function createMainWindow() {
-  if (mainWindow) return;
-  mainWindow = new BrowserWindow({
-    width: 800, height: 600, minWidth: 800, minHeight: 600,
-    autoplayPolicy: 'no-user-gesture-required',
-    webPreferences: { 
-        preload: path.join(__dirname, 'preload.js'),
-        nodeIntegration: false,
-        contextIsolation: true,
-        sandbox: false
-    }
-  });
-  mainWindow.maximize();
-  mainWindow.loadFile('src/views/main.html');
-  mainWindow.on('closed', () => { mainWindow = null; });
+    if (mainWindow) return;
+    mainWindow = new BrowserWindow({
+        width: 800, height: 600, minWidth: 800, minHeight: 600,
+        autoplayPolicy: 'no-user-gesture-required',
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: false
+        }
+    });
+    mainWindow.maximize();
+    mainWindow.loadFile('src/views/main.html');
+    mainWindow.on('closed', () => { mainWindow = null; });
 }
 
 
 // Quando o app estiver pronto, conectar ao servidor, cria a janela de autenticação e lida dados do servidor
 app.whenReady().then(() => {
+    let configPath;
+
+    if (app.isPackaged) {
+        configPath = path.join(process.resourcesPath, 'config.json');
+    } else {
+        configPath = path.join(app.getAppPath(), 'config.json');
+    }
+
+    try {
+        console.log(`Modo: ${app.isPackaged ? 'Produção' : 'Desenvolvimento'}`);
+        console.log(`Lendo configuração do arquivo: ${configPath}`);
+
+        const configData = fs.readFileSync(configPath, 'utf8');
+        const config = JSON.parse(configData);
+
+        SERVER_HOST = config.server_host || '127.0.0.1';
+        SERVER_PORT = config.server_port || 8888;
+
+        console.log(`configurado para: ${SERVER_HOST}:${SERVER_PORT}`);
+    } catch (err) {
+        console.error('Erro ao ler o arquivo de configuração:', err.message);
+        console.error('Usando valores padrão: 127.0.0.1:8888');
+
+        SERVER_HOST = '127.0.0.1';
+        SERVER_PORT = 8888;
+    }
+
     console.log('Tentando conectar ao servidor Python...');
     client.connect(SERVER_PORT, SERVER_HOST, () => {
         console.log('[DEBUG] Dentro do callback de client.connect!');
@@ -272,15 +300,15 @@ app.whenReady().then(() => {
                 console.log(`Servidor de sinalização -> Electron: Cmd=${commandName}, Payload=`, payload);
                 const response = { command: commandName, payload: payload };
                 const activeWindow = (mainWindow && !mainWindow.isDestroyed()) ? mainWindow :
-                                     (authWindow && !authWindow.isDestroyed()) ? authWindow : null;
-                                
+                    (authWindow && !authWindow.isDestroyed()) ? authWindow : null;
+
                 // Enviando dados desserializados para a janela ativa                     
                 if (activeWindow) {
                     activeWindow.webContents.send('from-server', response);
-                } else { 
-                    console.warn("Dados recebidos sem janela ativa."); 
+                } else {
+                    console.warn("Dados recebidos sem janela ativa.");
                 }
-            } catch (e) { 
+            } catch (e) {
                 console.error('Erro ao desserializar/encaminhar:', e);
             }
         }
@@ -290,12 +318,12 @@ app.whenReady().then(() => {
     client.on('error', (err) => {
         console.error('Erro no Socket TCP:', err.message);
         const activeWindow = (mainWindow && !mainWindow.isDestroyed()) ? mainWindow :
-                             (authWindow && !authWindow.isDestroyed()) ? authWindow : null;
+            (authWindow && !authWindow.isDestroyed()) ? authWindow : null;
         if (activeWindow) {
-          activeWindow.webContents.send('server-error', `Erro de Conexão: ${err.message}`);
+            activeWindow.webContents.send('server-error', `Erro de Conexão: ${err.message}`);
         }
-         if (mainWindow) mainWindow.close();
-         if (!authWindow) createAuthWindow();
+        if (mainWindow) mainWindow.close();
+        if (!authWindow) createAuthWindow();
     });
 
     // Tratamento de fechamento da conexão
@@ -320,11 +348,11 @@ app.whenReady().then(() => {
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
-          if (!client.connecting && client.destroyed) { 
-             client.connect(SERVER_PORT, SERVER_HOST);
-          } else if (!authWindow) {
-             createAuthWindow();
-          }
+            if (!client.connecting && client.destroyed) {
+                client.connect(SERVER_PORT, SERVER_HOST);
+            } else if (!authWindow) {
+                createAuthWindow();
+            }
         }
     });
 
@@ -332,42 +360,42 @@ app.whenReady().then(() => {
 
 // Lidando com login sucedido
 ipcMain.on('login-success', () => {
-  if (authWindow) { authWindow.close(); authWindow = null; }
-  createMainWindow();
+    if (authWindow) { authWindow.close(); authWindow = null; }
+    createMainWindow();
 });
 
 // Envio de mensagens para o Servidor
 ipcMain.on('to-server', (event, data) => {
-  try {
-      const commandCode = CommandCode[data.command];
-      if (commandCode === undefined) {
-          console.error(`Comando desconhecido do Renderer: ${data.command}`);
-          return;
-      }
-      const messageBuffer = createBinaryMessage(commandCode, data.payload);
-      console.log(`Electron -> Servidor de sinalização: Cmd=${data.command}(0x${commandCode.toString(16)}), Len=${messageBuffer.length - 3}`);
-      client.write(messageBuffer);
-  } catch (e) {
-    console.error('Falha ao criar ou enviar mensagem binária:', e);
-  }
+    try {
+        const commandCode = CommandCode[data.command];
+        if (commandCode === undefined) {
+            console.error(`Comando desconhecido do Renderer: ${data.command}`);
+            return;
+        }
+        const messageBuffer = createBinaryMessage(commandCode, data.payload);
+        console.log(`Electron -> Servidor de sinalização: Cmd=${data.command}(0x${commandCode.toString(16)}), Len=${messageBuffer.length - 3}`);
+        client.write(messageBuffer);
+    } catch (e) {
+        console.error('Falha ao criar ou enviar mensagem binária:', e);
+    }
 });
 
 // Tratamento do pedido de encerramento da aplicação
 ipcMain.on('quit-app', () => {
-  console.log("Recebido 'quit-app', definindo flag e encerrando a aplicação...");
-  userRequestedQuit = true; 
-  app.quit();
+    console.log("Recebido 'quit-app', definindo flag e encerrando a aplicação...");
+    userRequestedQuit = true;
+    app.quit();
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
 });
 
 app.on('before-quit', () => {
     console.log("App 'before-quit' event. Destruindo socket TCP se existir.");
     if (client && !client.destroyed) {
-        client.destroy(); 
+        client.destroy();
     }
 });

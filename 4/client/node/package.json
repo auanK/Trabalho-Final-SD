@@ -1,11 +1,12 @@
 {
-  "name": "voip_gui",
+  "name": "echo-signal",
   "version": "1.0.0",
   "description": "",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dist": "electron-builder"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +16,32 @@
     "electron-builder": "^26.0.12"
   },
   "dependencies": {
-    "electron-is-dev": "^3.0.1",
     "python-struct": "^1.1.3"
+  },
+  "build": {
+    "appId": "com.example.echosignal",
+    "productName": "EchoSignal",
+    "files": [
+      "src/**/*",
+      "voip_addon.node"
+    ],
+    "extraResources": [
+      {
+        "from": "config.json",
+        "to": "config.json"
+      }
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "mac": {
+      "target": "dmg"
+    }
   }
 }
