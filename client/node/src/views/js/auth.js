@@ -3,7 +3,7 @@ const registerForm = document.getElementById('register-form');
 const showRegisterLink = document.getElementById('show-register-link');
 const showLoginLink = document.getElementById('show-login-link');
 
-// Logica para alternar entre os formulários de login e registro
+// Logica para alternar
 showRegisterLink.addEventListener('click', (e) => {
     e.preventDefault();
     loginForm.style.display = 'none';
@@ -15,12 +15,11 @@ showLoginLink.addEventListener('click', (e) => {
     loginForm.style.display = 'block';
 });
 
-
-// Login
+// Login 
 const loginBtn = document.getElementById('login-btn');
 const loginErrorMsg = document.getElementById('login-error-msg');
 
-loginBtn.addEventListener('click', () => {
+loginBtn.addEventListener('click', async () => { 
     const nickname = document.getElementById('login-nickname').value;
     const password = document.getElementById('login-password').value;
     loginErrorMsg.innerText = "";
@@ -30,21 +29,26 @@ loginBtn.addEventListener('click', () => {
         return;
     }
 
-    window.electron.send('to-server', {
-        command: "LOGIN",
-        payload: {
-            nickname: nickname,
-            password: password
-        }
-    });
-});
+    try {
+        const [success, message, token] = await window.api.callRMI('login', [nickname, password]);
 
+        if (success) {
+            localStorage.setItem('currentUserNickname', nickname);
+            localStorage.setItem('sessionToken', token); 
+            window.api.send('login-success'); 
+        } else {
+            loginErrorMsg.innerText = message;
+        }
+    } catch (error) {
+        loginErrorMsg.innerText = `Erro de conexão: ${error.message}`;
+    }
+});
 
 // Registro
 const registerBtn = document.getElementById('register-btn');
 const registerMsg = document.getElementById('register-msg');
 
-registerBtn.addEventListener('click', () => {
+registerBtn.addEventListener('click', async () => { 
     const name = document.getElementById('register-name').value;
     const nickname = document.getElementById('register-nickname').value;
     const password = document.getElementById('register-password').value;
@@ -53,6 +57,7 @@ registerBtn.addEventListener('click', () => {
     registerMsg.innerText = "";
     registerMsg.style.color = '#d93025';
 
+    // Validação de campos
     if (!name || !nickname || !password) {
         registerMsg.innerText = "Todos os campos são obrigatórios.";
         return;
@@ -62,45 +67,23 @@ registerBtn.addEventListener('click', () => {
         return;
     }
 
-    window.electron.send('to-server', {
-        command: "REGISTER",
-        payload: {
-            nickname: nickname,
-            name: name,
-            password: password
-        }
-    });
-});
-
-
-// Recebendo respostas do servidor (passaram primeiro por main.js)
-window.electron.receive('from-server', (response) => {
-    console.log("Recebido do servidor:", response);
-    const command = response.command;
-    const payload = response.payload;
-
-    if (command === 'REGISTER_RESPONSE') {
-        if (payload.success) {
+    try {
+        const [success, message] = await window.api.callRMI('register', [nickname, name, password]);
+        
+        if (success) {
             registerMsg.style.color = '#28a745';
             registerMsg.innerText = "Conta criada com sucesso! Faça o login.";
         } else {
             registerMsg.style.color = '#d93025';
-            registerMsg.innerText = payload.message;
+            registerMsg.innerText = message;
         }
-    }
-
-    if (command === 'LOGIN_RESPONSE') {
-        if (payload.success) {
-            localStorage.setItem('currentUserNickname', payload.nickname);
-            window.electron.send('login-success');
-        } else {
-            loginErrorMsg.innerText = payload.message;
-        }
+    } catch (error) {
+        registerMsg.innerText = `Erro de conexão: ${error.message}`;
     }
 });
 
-// Tratamento de erros de conexão
-window.electron.receive('server-error', (errorMessage) => {
+// Tratamento de erros de conexão 
+window.api.receive('server-error', (errorMessage) => {
     console.error("Erro do servidor:", errorMessage);
     loginErrorMsg.innerText = "Erro de conexão com o servidor.";
     registerMsg.innerText = "Erro de conexão com o servidor.";

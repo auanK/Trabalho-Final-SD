@@ -16,7 +16,8 @@
     "electron-builder": "^26.0.12"
   },
   "dependencies": {
-    "python-struct": "^1.1.3"
+    "python-struct": "^1.1.3",
+    "xmlrpc": "^1.3.2"
   },
   "build": {
     "appId": "com.example.echosignal",

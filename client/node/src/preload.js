@@ -1,11 +1,10 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const path = require('path');
 
+// Lógica do Addon C++ 
 try {
     const addonPath = path.resolve(__dirname, '../voip_addon.node');
-
     const voipAddon = require(addonPath);
-
     const clientInstance = new voipAddon.VoipClient();
     console.log("Preload: Addon C++ carregado e instanciado com sucesso.");
 
@@ -40,14 +39,21 @@ try {
     console.error(e);
 }
 
-contextBridge.exposeInMainWorld('electron', {
+// API de comunicação RMI (Refatorada)
+contextBridge.exposeInMainWorld('api', {
+    callRMI: (method, params = []) => {
+        return ipcRenderer.invoke('rmi-call', { method, params });
+    },
+
     send: (channel, data) => {
-        ipcRenderer.send(channel, data);
+        const validChannels = ['login-success', 'quit-app'];
+        if (validChannels.includes(channel)) {
+            ipcRenderer.send(channel, data);
+        }
     },
 
     receive: (channel, func) => {
-        const validChannels = ['from-server', 'server-error'];
-
+        const validChannels = ['server-error'];
         if (validChannels.includes(channel)) {
             ipcRenderer.on(channel, (event, ...args) => func(...args));
         }
