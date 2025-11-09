@@ -118,32 +118,18 @@ app.on('window-all-closed', () => {
 // Lógica 'before-quit' para logout RMI
 app.on('before-quit', async (event) => {
     if (!userRequestedQuit) {
-        // Isso pode acontecer se o usuário fechar a janela (Cmd+Q no Mac)
-        // sem clicar no botão "Logout".
         console.log("Encerramento não iniciado pelo 'quit-app' detectado.");
     }
     
-    // AVISO: O código abaixo tenta fazer logout no servidor antes de fechar.
-    // Isso pode atrasar o fechamento do app.
-    // Você pode remover isso se não for necessário notificar o servidor.
-    
     console.log("Tentando notificar o servidor sobre o logout antes de sair...");
-    // Previne o fechamento imediato
     event.preventDefault(); 
     
     try {
-        // Tenta fazer um logout RMI.
-        // Precisamos do token, mas o main.js não o tem.
-        // Por simplicidade, vamos apenas fechar.
-        // Para fazer o logout corretamente, o renderer (main_html.js)
-        // deveria capturar o evento 'beforeunload' e chamar o RMI 'logout'
-        
         console.log("Fechando sem notificar o servidor (lógica de token está no renderer).");
         
     } catch (e) {
         console.warn("Erro ao tentar fazer logout RMI:", e.message);
     } finally {
-        // Garante que o app feche
         userRequestedQuit = true; 
         app.quit();
     }
